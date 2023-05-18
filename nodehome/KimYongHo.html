@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Lottery DApp</title>
+	<script src="web3.min.js"></script>
+</head>
+<body>
+	
+	<h1>Lottery DApp</h1>
+	<a href="https://youtu.be/zFeeD6HJguM"> Project 1 Demo video </a>
+    <br>
+    <h4>Team Name: YongHo Kim (20181588)</h4>
+	<p>Minimum Bet: 0.1 ether</p>
+	<p>Number of players: <span id="numPlayers"></span></p>
+	<p>Prize Pool: <span id="prizePool"></span> ether</p>
+	<button onclick="enterLottery()">Enter Lottery</button>
+	<button onclick="pickWinner()">Pick Winner</button>
+
+	<script>
+		// 스마트 컨트랙트 주소
+		const contractAddress = '0x9Ac5A488F65e7752CC012557890956FD2506E324';
+
+		// 스마트 컨트랙트 ABI
+		const contractABI = [
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [],
+		"name": "counter",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "enterLottery",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "manager",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "minimumBet",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "pickWinner",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "players",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "prizePool",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+        var cresult = document.getElementById("numPlayers");
+        var presult = document.getElementById("prizePool");
+		// Web3.js 인스턴스 생성
+		const web3 = new Web3(window.ethereum);
+
+		// 현재 계정 주소 가져오기
+		web3.eth.getAccounts()
+		.then(accounts => {
+			if (accounts.length === 0) {
+				throw new Error("No account found. Please connect to MetaMask.");
+			}
+			account = accounts[0];
+			console.log(`Current account: ${account}`);
+		})
+		.catch(err => {
+			console.error(err);
+		});
+
+		// 스마트 컨트랙트 인스턴스 생성
+		const contractInstance = new web3.eth.Contract(contractABI, contractAddress);
+		
+
+		// 베팅에 참가하는 함수
+		function enterLottery() {
+			const value = web3.utils.toWei('0.1', 'ether');
+			contractInstance.methods.enterLottery().send({from: account, value: value})
+			.then(() => {
+				console.log("Entered the lottery");
+				updateLotteryInfo();
+			})
+			.catch(err => {
+				console.error(err);
+			});
+            
+		}
+
+		// 당첨자를 뽑는 함수
+		function pickWinner() {
+			contractInstance.methods.pickWinner().send({from: account})
+			.then(() => {
+				console.log("Picked a winner");
+                updateLotteryInfo()
+			})
+			.catch(err => {
+				console.error(err);
+			});
+		}
+
+		// 업데이트 해주는 함
+        async function updateLotteryInfo(){
+            const counter = await contractInstance.methods.counter().call();
+            const prizePool = await contractInstance.methods.prizePool().call();
+
+            document.getElementById("numPlayers").innerHTML = counter;
+            document.getElementById("prizePool").innerHTML = web3.utils.fromWei(prizePool.toString(), "ether");
+        }
+		
+	</script>
+</body>
+</html>
